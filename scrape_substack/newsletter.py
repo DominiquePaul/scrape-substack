@@ -92,7 +92,7 @@ def get_newsletters_in_category(
         pubs = requests.get(full_url, headers=HEADERS, timeout=30).json()
         if pubs.get("errors"):
             if page_num == 21:
-                print("Page 21 was reached for category with ID {category_id}. Substack API only support first 20 pages. Stopping.")
+                print(f"Page 21 was reached for category with ID {category_id}. Substack API only support first 20 pages. Stopping.")
             break
         more = pubs["more"]
         if subdomains_only:
@@ -114,20 +114,39 @@ def get_newsletter_post_metadata(
     end_offset: int | None = None,
 ) -> list[dict[str, t.Any]]:
     """
-    Get available post metadata for newsletter
+    Get available post metadata for newsletter. This function paginates through a newsletter's posts
+    and returns either full post metadata or just the post slugs.
 
     Parameters
     ----------
-    newsletter_subdomain : Substack subdomain of newsletter
-    slugs_only : Whether to return only post slugs (needed for post content collection)
-    start_page : Start page for paginated API results
-    end_page : End page for paginated API results
+    newsletter_subdomain : str
+        Substack subdomain of newsletter (e.g. "platformer" for platformer.substack.com)
+    slugs_only : bool, optional
+        Whether to return only post slugs (needed for post content collection) instead of full metadata.
+        Defaults to False.
+    start_offset : int | None, optional
+        Starting offset for pagination. Each page contains 10 posts.
+        If None, starts from the beginning (offset 0). Defaults to None.
+    end_offset : int | None, optional
+        Ending offset for pagination. Each page contains 10 posts.
+        If None, retrieves all available posts. Defaults to None.
+
+    Returns
+    -------
+    list[dict[str, t.Any]]
+        If slugs_only is False, returns a list of dictionaries containing full post metadata.
+        If slugs_only is True, returns a list of post slug strings.
     """
     offset_start = 0 if start_offset is None else start_offset
     offset_end = math.inf if end_offset is None else end_offset
 
     last_id_ref = 0
     all_posts = []
+    
+    # Initialize progress bar with estimated total iterations
+    estimated_total = min(100, (offset_end - offset_start) // 10) if offset_end != math.inf else 100
+    pbar = tqdm(total=estimated_total, leave=False)
+    
     while offset_start < offset_end:
         full_url = f"https://{newsletter_subdomain}.substack.com/api/v1/archive?sort=new&search=&offset={offset_start}&limit=10"
         posts = requests.get(full_url, headers=HEADERS, timeout=30).json()
@@ -147,8 +166,9 @@ def get_newsletter_post_metadata(
             all_posts.extend(posts)
 
         offset_start += 10
-        sleep(1)
+        pbar.update(1)
 
+    pbar.close()
     return all_posts
 
 
