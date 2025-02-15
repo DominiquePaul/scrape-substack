@@ -1,6 +1,5 @@
 import math
 import typing as t
-from time import sleep
 
 from bs4 import BeautifulSoup
 import requests
@@ -85,14 +84,19 @@ def get_newsletters_in_category(
     base_url = f"https://substack.com/api/v1/category/public/{category_id}/all?page="
     more = True
     all_pubs = []
-    pbar = tqdm(total=max(end_page if end_page is not None else 20, 20) - (start_page or 0), leave=False)
+    pbar = tqdm(
+        total=max(end_page if end_page is not None else 20, 20) - (start_page or 0),
+        leave=False,
+    )
 
     while more and page_num < page_num_end:
         full_url = base_url + str(page_num)
         pubs = requests.get(full_url, headers=HEADERS, timeout=30).json()
         if pubs.get("errors"):
             if page_num == 21:
-                print(f"Page 21 was reached for category with ID {category_id}. Substack API only support first 20 pages. Stopping.")
+                print(
+                    f"Page 21 was reached for category with ID {category_id}. Substack API only support first 20 pages. Stopping."
+                )
             break
         more = pubs["more"]
         if subdomains_only:
@@ -142,11 +146,13 @@ def get_newsletter_post_metadata(
 
     last_id_ref = 0
     all_posts = []
-    
+
     # Initialize progress bar with estimated total iterations
-    estimated_total = min(100, (offset_end - offset_start) // 10) if offset_end != math.inf else 100
+    estimated_total = (
+        min(100, (offset_end - offset_start) // 10) if offset_end != math.inf else 100
+    )
     pbar = tqdm(total=estimated_total, leave=False)
-    
+
     while offset_start < offset_end:
         full_url = f"https://{newsletter_subdomain}.substack.com/api/v1/archive?sort=new&search=&offset={offset_start}&limit=10"
         posts = requests.get(full_url, headers=HEADERS, timeout=30).json()

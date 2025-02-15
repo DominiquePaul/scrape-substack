@@ -19,23 +19,35 @@ def mock_response():
 @patch("requests.get")
 def test_list_all_categories(mock_get, mock_response):
     return_value = [
-        {'id': 96, 'name': 'Culture', 'active': True, 'rank': 0, 'slug': 'culture'}, 
-        {'id': 4, 'name': 'Technology', 'active': True, 'rank': 1, 'slug': 'technology'}, 
-        {'id': 62, 'name': 'Business', 'active': True, 'rank': 2, 'slug': 'business'}, 
-        {'id': 76739, 'name': 'U.S. Politics', 'active': True, 'rank': 3, 'slug': 'us-politics'}, 
-        {'id': 153, 'name': 'Finance', 'active': True, 'rank': 4, 'slug': 'finance'}, 
-    ]    
+        {"id": 96, "name": "Culture", "active": True, "rank": 0, "slug": "culture"},
+        {
+            "id": 4,
+            "name": "Technology",
+            "active": True,
+            "rank": 1,
+            "slug": "technology",
+        },
+        {"id": 62, "name": "Business", "active": True, "rank": 2, "slug": "business"},
+        {
+            "id": 76739,
+            "name": "U.S. Politics",
+            "active": True,
+            "rank": 3,
+            "slug": "us-politics",
+        },
+        {"id": 153, "name": "Finance", "active": True, "rank": 4, "slug": "finance"},
+    ]
     mock_response.json.return_value = return_value
     mock_get.return_value = mock_response
     categories = list_all_categories()
     assert len(categories) == 5
     assert categories == return_value
-    
+
 
 # def test_list_all_categories():
 #     categories = list_all_categories()
 #     assert len(categories) >= 30
-    
+
 
 @patch("requests.get")
 def test_get_newsletter_post_metadata_slugs_only(mock_get, mock_response):
@@ -47,6 +59,7 @@ def test_get_newsletter_post_metadata_slugs_only(mock_get, mock_response):
 
     result = get_newsletter_post_metadata("test_subdomain", slugs_only=True)
     assert result == ["post-1", "post-2"]
+
 
 @patch("requests.get")
 def test_get_newsletter_post_metadata_all_metadata(mock_get, mock_response):
@@ -61,6 +74,7 @@ def test_get_newsletter_post_metadata_all_metadata(mock_get, mock_response):
         {"id": 1, "slug": "post-1", "title": "Post 1"},
         {"id": 2, "slug": "post-2", "title": "Post 2"},
     ]
+
 
 @patch("requests.get")
 def test_get_newsletter_post_metadata_pagination(mock_get):
@@ -90,6 +104,7 @@ def test_get_newsletter_post_metadata_pagination(mock_get):
     )
     assert result == ["post-1", "post-2", "post-3", "post-4"]
 
+
 @patch("requests.get")
 def test_get_newsletter_post_metadata_no_posts(mock_get, mock_response):
     mock_response.json.return_value = []
@@ -98,11 +113,13 @@ def test_get_newsletter_post_metadata_no_posts(mock_get, mock_response):
     result = get_newsletter_post_metadata("test_subdomain")
     assert result == []
 
+
 @pytest.fixture
 def mock_bs_components():
     mock_div = MagicMock()
     mock_div.find.return_value = {"href": "https://mocked_url.com?param=value"}
     return mock_div
+
 
 @patch("requests.get")
 @patch.object(BeautifulSoup, "find_all")
@@ -133,6 +150,7 @@ def test_get_newsletter_recommendations(
     mock_bs_init.assert_called_once_with("mocked_html", "html.parser")
     assert mock_find_all.call_count == 2
 
+
 @patch("requests.get")
 def test_get_post_contents_html_only(mock_get, mock_response):
     mock_response.json.return_value = {
@@ -142,6 +160,7 @@ def test_get_post_contents_html_only(mock_get, mock_response):
 
     result = get_post_contents("test_subdomain", "test_slug", html_only=True)
     assert result == "<html><body>Test post</body></html>"
+
 
 @patch("requests.get")
 def test_get_post_contents_all_metadata(mock_get, mock_response):
