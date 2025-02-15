@@ -1,0 +1,5 @@
+- Use pytest for testing
+- Use black for formatting
+- Use poetry for dependency management
+- Use pydantic over dataclasses
+- Use type hints according to python >3.12

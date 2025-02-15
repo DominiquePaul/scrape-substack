@@ -1,52 +1,58 @@
-import unittest
-from unittest.mock import patch
-from substack_api.user import (
+import pytest
+from unittest.mock import patch, Mock
+from scrape_substack.user import (
     get_user_id,
     get_user_reads,
     get_user_likes,
     get_user_notes,
 )
 
+@pytest.fixture
+def mock_response():
+    return Mock(ok=True)
 
-class TestUser(unittest.TestCase):
-    @patch("requests.get")
-    def test_get_user_id(self, mock_get):
-        mock_get.return_value.json.return_value = {"id": 123}
-        result = get_user_id("testuser")
-        self.assertEqual(result, 123)
+@patch("requests.get")
+def test_get_user_id(mock_get, mock_response):
+    mock_response.json.return_value = {"id": 123}
+    mock_get.return_value = mock_response
+    
+    result = get_user_id("testuser")
+    assert result == 123
 
-    @patch("requests.get")
-    def test_get_user_reads(self, mock_get):
-        mock_get.return_value.json.return_value = {
-            "subscriptions": [
-                {
-                    "publication": {"id": "123", "name": "Test Publication"},
-                    "membership_state": "subscribed",
-                }
-            ]
-        }
-        expected_result = [
+@patch("requests.get")
+def test_get_user_reads(mock_get, mock_response):
+    mock_response.json.return_value = {
+        "subscriptions": [
             {
-                "publication_id": "123",
-                "publication_name": "Test Publication",
-                "subscription_status": "subscribed",
+                "publication": {"id": "123", "name": "Test Publication"},
+                "membership_state": "subscribed",
             }
         ]
-        result = get_user_reads("testuser")
-        self.assertEqual(result, expected_result)
+    }
+    mock_get.return_value = mock_response
 
-    @patch("requests.get")
-    def test_get_user_likes(self, mock_get):
-        mock_get.return_value.json.return_value = {"items": ["post1", "post2"]}
-        result = get_user_likes(123)
-        self.assertEqual(result, ["post1", "post2"])
+    expected_result = [
+        {
+            "publication_id": "123",
+            "publication_name": "Test Publication",
+            "subscription_status": "subscribed",
+        }
+    ]
+    result = get_user_reads("testuser")
+    assert result == expected_result
 
-    @patch("requests.get")
-    def test_get_user_notes(self, mock_get):
-        mock_get.return_value.json.return_value = {"items": ["note1", "note2"]}
-        result = get_user_notes(123)
-        self.assertEqual(result, ["note1", "note2"])
+@patch("requests.get")
+def test_get_user_likes(mock_get, mock_response):
+    mock_response.json.return_value = {"items": ["post1", "post2"]}
+    mock_get.return_value = mock_response
+    
+    result = get_user_likes(123)
+    assert result == ["post1", "post2"]
 
-
-if __name__ == "__main__":
-    unittest.main()
+@patch("requests.get")
+def test_get_user_notes(mock_get, mock_response):
+    mock_response.json.return_value = {"items": ["note1", "note2"]}
+    mock_get.return_value = mock_response
+    
+    result = get_user_notes(123)
+    assert result == ["note1", "note2"]

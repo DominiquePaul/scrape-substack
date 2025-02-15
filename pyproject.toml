@@ -1,16 +1,21 @@
 [tool.poetry]
-name = "substack-api"
+name = "scrape-substack"
 version = "0.1.0"
-description = "unofficial python wrapper for collecting substack data"
-authors = ["NHagar <nicholasrhagar@gmail.com>"]
+description = "Fetch data from substack"
+authors = ["Dominique Paul <dominique.c.a.paul@gmail.com>"]
 license = "MIT"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = ">=3.11,<4.0"
 requests = "^2.31.0"
 beautifulsoup4 = "^4.12.3"
+pytest = "^8.3.4"
+tqdm = "^4.67.1"
 
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.4"
 
 [build-system]
 requires = ["poetry-core"]

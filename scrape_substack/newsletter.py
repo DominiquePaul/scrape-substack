@@ -1,9 +1,10 @@
 import math
+import typing as t
 from time import sleep
-from typing import Dict, List, Tuple, Union
 
 from bs4 import BeautifulSoup
 import requests
+from tqdm import tqdm
 
 
 HEADERS = {
@@ -11,13 +12,22 @@ HEADERS = {
 }
 
 
-def list_all_categories() -> List[Tuple[str, int]]:
+def list_all_categories() -> list[dict[str, t.Any]]:
     """
     Get name / id representations of all newsletter categories
     """
     endpoint_cat = "https://substack.com/api/v1/categories"
     r = requests.get(endpoint_cat, headers=HEADERS, timeout=30)
-    categories = [(i["name"], i["id"]) for i in r.json()]
+    keys_to_keep = ["id", "name", "active", "rank", "slug"]
+    categories = []
+    for i in r.json():
+        category = {}
+        if not isinstance(i["id"], int):
+            continue
+        for k in keys_to_keep:
+            if k in i:
+                category[k] = i[k]
+        categories.append(category)
     return categories
 
 
@@ -56,9 +66,9 @@ def category_name_to_id(name: str) -> int:
 def get_newsletters_in_category(
     category_id: int,
     subdomains_only: bool = False,
-    start_page: int = None,
-    end_page: int = None,
-) -> List:
+    start_page: int | None = None,
+    end_page: int | None = None,
+) -> list[dict[str, t.Any]]:
     """
     Collects newsletter objects listed under specified category
 
@@ -69,16 +79,21 @@ def get_newsletters_in_category(
     start_page : Start page for paginated API results
     end_page : End page for paginated API results
     """
-    page_num = 0 if start_page is None else start_page
+    page_num = start_page if start_page else 0
     page_num_end = math.inf if end_page is None else end_page
 
     base_url = f"https://substack.com/api/v1/category/public/{category_id}/all?page="
-    page_num = 0
     more = True
     all_pubs = []
+    pbar = tqdm(total=max(end_page if end_page is not None else 20, 20) - (start_page or 0), leave=False)
+
     while more and page_num < page_num_end:
         full_url = base_url + str(page_num)
         pubs = requests.get(full_url, headers=HEADERS, timeout=30).json()
+        if pubs.get("errors"):
+            if page_num == 21:
+                print("Page 21 was reached for category with ID {category_id}. Substack API only support first 20 pages. Stopping.")
+            break
         more = pubs["more"]
         if subdomains_only:
             pubs = [i["id"] for i in pubs["publications"]]
@@ -86,8 +101,8 @@ def get_newsletters_in_category(
             pubs = pubs["publications"]
         all_pubs.extend(pubs)
         page_num += 1
-        print(f"page {page_num} done")
-        sleep(1)
+        pbar.update(1)
+    pbar.close()
 
     return all_pubs
 
@@ -95,9 +110,9 @@ def get_newsletters_in_category(
 def get_newsletter_post_metadata(
     newsletter_subdomain: str,
     slugs_only: bool = False,
-    start_offset: int = None,
-    end_offset: int = None,
-) -> List:
+    start_offset: int | None = None,
+    end_offset: int | None = None,
+) -> list[dict[str, t.Any]]:
     """
     Get available post metadata for newsletter
 
@@ -139,7 +154,7 @@ def get_newsletter_post_metadata(
 
 def get_post_contents(
     newsletter_subdomain: str, slug: str, html_only: bool = False
-) -> Union[Dict, str]:
+) -> dict[str, t.Any] | str:
     """
     Gets individual post metadata and contents
 
@@ -157,7 +172,7 @@ def get_post_contents(
     return post_info
 
 
-def get_newsletter_recommendations(newsletter_subdomain: str) -> List[Dict[str, str]]:
+def get_newsletter_recommendations(newsletter_subdomain: str) -> list[dict[str, str]]:
     """
     Gets recommended newsletters for a given newsletter
 
