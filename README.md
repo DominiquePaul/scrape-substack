@@ -1,8 +1,12 @@
-# Substack-api
+# Scrape Substack
 
 **An unofficial Python wrapper around Substack's API.**
 
-I developed this package as a lightweight tool to help researchers collect data about Substack newsletters, and to help writers archive their work off-platform. This is not a tool designed for bulk text extraction/web scraping. It supports the following functionality:
+I love Substack. It has some of the best content out there but unfortunately Substack only supports keyword search - no semantic search. I decided to build a semantic search which required me to scape most of it and rebuild a vector database with its content (see the project [here](https://github.com/DominiquePaul/search-substack-semantically)). A part of this project was building the scraper. 
+
+Working with data on substack might be useful to others so I separated the scraping code from the rest of the project for others ot use it to. 
+
+This repo includes:
 
 * Download full JSON metadata about newsletters by category
 * Download full JSON metadata about posts by newsletter
@@ -12,11 +16,11 @@ I developed this package as a lightweight tool to help researchers collect data 
 
 ## Installation
 
-`pip install substack-api`
+`pip install scrape-substack`
 
 ## Usage
 
-```from substack_api import newsletter, user```
+```from scrape_substack import newsletter, user```
 
 List all categories on Substack:
 
@@ -41,3 +45,7 @@ Get post contents (HTML only) from one newsletter post:
 ```
 newsletter.get_post_contents("platformer", "how-a-single-engineer-brought-down", html_only=True)
 ```
+
+## Acknowledgements
+
+This work builds on the substack-api repo by Nick Hagar. These modifications fix bugs, improve error handling as well as rate limiting.
