@@ -33,10 +33,8 @@ def get_with_exponential_backoff(endpoint: str, headers: dict[str, str], timeout
     
     while retry_count < max_retries:
         try:
-            print(f"Sending request to {endpoint}...", flush=True)
             r = requests.get(endpoint, headers=headers, timeout=timeout)
             r.raise_for_status()
-            print("Request successful!", flush=True)
             return r
             
         except RequestException as e:
