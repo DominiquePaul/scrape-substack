@@ -12,6 +12,7 @@ requests = "^2.31.0"
 beautifulsoup4 = "^4.12.3"
 pytest = "^8.3.4"
 tqdm = "^4.67.1"
+pre-commit = "^4.1.0"
 
 
 [tool.poetry.group.dev.dependencies]
