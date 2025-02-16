@@ -88,6 +88,7 @@ def get_newsletters_in_category(
     pbar = tqdm(
         total=max(end_page if end_page is not None else 20, 20) - (start_page or 0),
         leave=False,
+        desc="Iterating over category pages",
     )
 
     while more and page_num < page_num_end:
@@ -152,7 +153,7 @@ def get_newsletter_post_metadata(
     estimated_total = (
         min(100, (offset_end - offset_start) // 10) if offset_end != math.inf else 100
     )
-    pbar = tqdm(total=estimated_total, leave=False)
+    pbar = tqdm(total=estimated_total, leave=False, desc="Fetching newsletter posts")
 
     while offset_start < offset_end:
         full_url = f"https://{newsletter_subdomain}.substack.com/api/v1/archive?sort=new&search=&offset={offset_start}&limit=10"

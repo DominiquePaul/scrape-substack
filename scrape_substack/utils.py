@@ -34,15 +34,12 @@ def get_with_exponential_backoff(endpoint: str, headers: dict[str, str], timeout
     while retry_count < max_retries:
         try:
             r = requests.get(endpoint, headers=headers, timeout=timeout)
-            r.raise_for_status()
             return r
-            
         except RequestException as e:
             retry_count += 1
             if retry_count == max_retries:
                 print(f"Max retries ({max_retries}) reached. Raising error.", flush=True)
                 raise e
-                
             # Calculate exponential backoff wait time: 2^retry_count seconds
             wait_time = 3 ** retry_count
             print(f"Request failed. Retrying in {wait_time} seconds... (Attempt {retry_count}/{max_retries})", flush=True)
