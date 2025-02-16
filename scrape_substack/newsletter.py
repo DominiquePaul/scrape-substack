@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 import requests
 from tqdm import tqdm
 
+from scrape_substack.utils import get_with_exponential_backoff
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36"
@@ -16,7 +17,7 @@ def list_all_categories() -> list[dict[str, t.Any]]:
     Get name / id representations of all newsletter categories
     """
     endpoint_cat = "https://substack.com/api/v1/categories"
-    r = requests.get(endpoint_cat, headers=HEADERS, timeout=30)
+    r = get_with_exponential_backoff(endpoint_cat, HEADERS)
     keys_to_keep = ["id", "name", "active", "rank", "slug"]
     categories = []
     for i in r.json():
@@ -91,7 +92,7 @@ def get_newsletters_in_category(
 
     while more and page_num < page_num_end:
         full_url = base_url + str(page_num)
-        pubs = requests.get(full_url, headers=HEADERS, timeout=30).json()
+        pubs = get_with_exponential_backoff(full_url, HEADERS).json()
         if pubs.get("errors"):
             if page_num == 21:
                 print(
@@ -155,7 +156,7 @@ def get_newsletter_post_metadata(
 
     while offset_start < offset_end:
         full_url = f"https://{newsletter_subdomain}.substack.com/api/v1/archive?sort=new&search=&offset={offset_start}&limit=10"
-        posts = requests.get(full_url, headers=HEADERS, timeout=30).json()
+        posts = get_with_exponential_backoff(full_url, HEADERS).json()
 
         if len(posts) == 0:
             break
@@ -191,7 +192,8 @@ def get_post_contents(
     html_only : Whether to get only HTML of body text, or all metadata/content
     """
     endpoint = f"https://{newsletter_subdomain}.substack.com/api/v1/posts/{slug}"
-    post_info = requests.get(endpoint, headers=HEADERS, timeout=30).json()
+    r = get_with_exponential_backoff(endpoint, HEADERS)
+    post_info = r.json()
     if html_only:
         return post_info["body_html"]
 
@@ -207,7 +209,7 @@ def get_newsletter_recommendations(newsletter_subdomain: str) -> list[dict[str, 
     newsletter_subdomain : Substack subdomain of newsletter
     """
     endpoint = f"https://{newsletter_subdomain}.substack.com/recommendations"
-    r = requests.get(endpoint, headers=HEADERS, timeout=30)
+    r = get_with_exponential_backoff(endpoint, HEADERS)
     recs = r.text
     soup = BeautifulSoup(recs, "html.parser")
     div_elements = soup.find_all("div", class_="publication-content")

@@ -48,4 +48,4 @@ newsletter.get_post_contents("platformer", "how-a-single-engineer-brought-down",
 
 ## Acknowledgements
 
-This work builds on the [substack-api repo by Nick Hagar](https://github.com/NHagar/substack_api). It fixes bugs, improves error handling as well as rate limiting.
+This work builds on the [substack-api repo by Nick Hagar](https://github.com/NHagar/substack_api). It fixes bugs, improves error handling and adds retrying with exponential backoff when exceeding rate limits.
